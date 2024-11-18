@@ -38,7 +38,7 @@ queue.process(async (job) => {
 
     try {
       // Use bot.telegram.sendMessage instead of ctx.reply
-      await bot.telegram.sendMessage(chat_id, message, { reply_markup: inlineKeyboard });
+      await bot.telegram.sendMessage(chat_id, welcomeMessage, { reply_markup: inlineKeyboard });
     } catch (error) {
       console.error("Error sending message:", error);
     }
