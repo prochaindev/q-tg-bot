@@ -15,27 +15,28 @@ app.use(express.json());
 
 // Webhook setup
 const WEBHOOK_PATH = "/telegram-webhook";
-const WEBHOOK_URL = `https://your-domain.com${WEBHOOK_PATH}`;
+const WEBHOOK_URL = `https://ratskingdom.com/api${WEBHOOK_PATH}`;
 bot.telegram.setWebhook(WEBHOOK_URL);
 
 // BeeQueue processing with rate limiting
 queue.process(async (job) => {
-    const { ctx, message, keyboard } = job.data;
-  
+    const { chat_id, message, keyboard } = job.data;  // Extract data (chat_id, message, keyboard)
+
     try {
-      await ctx.reply(message, keyboard);
+      // Use bot.telegram.sendMessage instead of ctx.reply
+      await bot.telegram.sendMessage(chat_id, message, { reply_markup: keyboard });
     } catch (error) {
       console.error("Error sending message:", error);
     }
-  
+
     // Rate limiting: wait for 200ms (1000ms / 5 users = 200ms per reply)
     await new Promise((resolve) => setTimeout(resolve, 200));
-  });
-  
+});
 
 // Function to add messages to the queue
 const addToQueue = (ctx, message, keyboard) => {
-  queue.createJob({ ctx, message, keyboard }).save();
+  const { chat } = ctx;  // Extract chat data from ctx
+  queue.createJob({ chat_id: chat.id, message, keyboard }).save();  // Store chat_id, message, and keyboard
 };
 
 // Define the bot logic
@@ -77,3 +78,5 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Webhook set up at ${WEBHOOK_URL}`);
 });
+
+bot.launch(); // Launch the bot (if it's not being used only for webhook)
