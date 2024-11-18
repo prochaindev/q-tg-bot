@@ -18,13 +18,27 @@ const WEBHOOK_PATH = "/telegram-webhook";
 const WEBHOOK_URL = `https://ratskingdom.com/api${WEBHOOK_PATH}`;
 bot.telegram.setWebhook(WEBHOOK_URL);
 
+const welcomeMessage = `Hi @${ctx.from.first_name}, Welcome to the Rats Kingdom!
+
+  ✅ Earn $RATS based on the age of your Telegram account. 
+
+  ✅ Complete tasks and invite friends to maximize your earnings.`;
+
+const inlineKeyboard = Markup.inlineKeyboard([
+    [Markup.button.url("Open App", "http://t.me/RatsKingdom_Bot/join")],
+    [Markup.button.url("Join Telegram", "http://t.me/The_RatsKingdom")],
+    [Markup.button.url("Follow X", "https://x.com/The_RatsKingdom")],
+    [Markup.button.url("Subscribe YouTube", "https://youtube.com/@the_ratskingdom?feature=shared")],
+  ])
+
+
 // BeeQueue processing with rate limiting
 queue.process(async (job) => {
-    const { chat_id, message, keyboard } = job.data;  // Extract data (chat_id, message, keyboard)
+    const { chat_id } = job.data;  // Extract data (chat_id, message, keyboard)
 
     try {
       // Use bot.telegram.sendMessage instead of ctx.reply
-      await bot.telegram.sendMessage(chat_id, message, { reply_markup: keyboard });
+      await bot.telegram.sendMessage(chat_id, message, { reply_markup: inlineKeyboard });
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -34,9 +48,9 @@ queue.process(async (job) => {
 });
 
 // Function to add messages to the queue
-const addToQueue = (ctx, message, keyboard) => {
+const addToQueue = (ctx) => {
   const { chat } = ctx;  // Extract chat data from ctx
-  queue.createJob({ chat_id: chat.id, message, keyboard }).save();  // Store chat_id, message, and keyboard
+  queue.createJob({ chat_id: chat.id}).save();  // Store chat_id, message, and keyboard
 };
 
 // Define the bot logic
@@ -45,20 +59,7 @@ bot.start((ctx) => {
     return;
   }
 
-  const welcomeMessage = `Hi @${ctx.from.first_name}, Welcome to the Rats Kingdom!
-
-  ✅ Earn $RATS based on the age of your Telegram account. 
-
-  ✅ Complete tasks and invite friends to maximize your earnings.`;
-
-  const inlineKeyboard = Markup.inlineKeyboard([
-    [Markup.button.url("Open App", "http://t.me/RatsKingdom_Bot/join")],
-    [Markup.button.url("Join Telegram", "http://t.me/The_RatsKingdom")],
-    [Markup.button.url("Follow X", "https://x.com/The_RatsKingdom")],
-    [Markup.button.url("Subscribe YouTube", "https://youtube.com/@the_ratskingdom?feature=shared")],
-  ]);
-
-  addToQueue(ctx, welcomeMessage, inlineKeyboard); // Add response to the queue
+  addToQueue(ctx); // Add response to the queue
 });
 
 // Webhook route
